@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
 import os
 import time
 from django.test import LiveServerTestCase
@@ -83,32 +84,32 @@ class NewVisitorTest(LiveServerTestCase):
 
         ## We use a new browser session to make sure that no information
         ## of Edith's is coming through from cookies etc
-        Self.browser.quit()
-        Self.browser = webdriver.Firefox()
+        self.browser.quit()
+        self.browser = webdriver.Chrome(executable_path=os.environ.get('CHROME_DRIVER_PATH'))
 
         # Francis visits the home page.  There is no sign of Edith's
         # list
-        Self.browser.get(self.live_server_url)
-        Page_text = self.browser.find_element_by_tag_name('body').text
-        Self.assertNotIn('Buy peacock feathers', page_text)
-        Self.assertNotIn('make a fly', page_text)
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertNotIn('make a fly', page_text)
 
         # Francis starts a new list by entering a new item. He
         # is less interesting than Edith...
-        Inputbox = self.browser.find_element_by_id('id_new_item')
-        Inputbox.send_keys('Buy milk')
-        Inputbox.send_keys(Keys.ENTER)
-        Self.wait_for_row_in_list_table('1: Buy milk')
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy milk')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy milk')
 
         # Francis gets his own unique URL
         Francis_list_url = self.browser.current_url
-        Self.assertRegex(francis_list_url, '/lists/.+')
-        Self.assertNotEqual(francis_list_url, edith_list_url)
+        self.assertRegex(francis_list_url, '/lists/.+')
+        self.assertNotEqual(francis_list_url, edith_list_url)
 
         # Again, there is no trace of Edith's list
-        Page_text = self.browser.find_element_by_tag_name('body').text
-        Self.assertNotIn('Buy peacock feathers', page_text)
-        Self.assertIn('Buy milk', page_text)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertIn('Buy milk', page_text)
 
         self.fail('Finish the test!')
         # Edith wonders whether the site will remember her list. Then she sees
